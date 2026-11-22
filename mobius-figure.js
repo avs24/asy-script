@@ -1,6 +1,6 @@
 const asymptoteModuleUrl = "https://cdn.jsdelivr.net/npm/asymptote-web/dist/asymptote-web.js";
 const mathJaxSource = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js";
-const libraryVersion = "0.4.0";
+const libraryVersion = "0.5.0";
 let enginePromise;
 let mathJaxPromise;
 
@@ -222,7 +222,6 @@ export function prepareAsySource(source) {
     const label = decodeAsyStringLiteral(source, call.args[0]);
     if (label === null) continue;
     const tex = mathSourceFromLabel(label);
-    if (!tex) continue;
 
     const position = source.slice(call.args[1].start, call.args[1].end).trim();
     if (!position) continue;
@@ -233,7 +232,14 @@ export function prepareAsySource(source) {
       end: statementEnd(source, call.closeIndex),
       text: `{ dot(${position}, ${color.asy}+linewidth(2bp)); }`,
     });
-    overlays.push({ tex, position, alignment: getAlignment(call, source), color: color.css });
+    overlays.push({
+      kind: tex ? "math" : "text",
+      tex,
+      text: label,
+      position,
+      alignment: getAlignment(call, source),
+      color: color.css,
+    });
   }
 
   for (const call of findFunctionCalls(source, "markangle")) {
@@ -257,6 +263,7 @@ export function prepareAsySource(source) {
       text: `{ pair ${pointName}=mobiusAsyLabelPointForMarkAngle(${restArgs}); markangle("",${restArgs}); dot(${pointName},${color.asy}+linewidth(2bp)); dot(${vertex},${originColor.asy}+linewidth(2bp)); }`,
     });
     overlays.push({
+      kind: "math",
       tex,
       position: pointName,
       alignment: "Angle",
@@ -330,6 +337,9 @@ function markerPoint(svg, color) {
       element.getAttribute("fill"),
       element.style.fill,
       getComputedStyle(element).fill,
+      element.getAttribute("stroke"),
+      element.style.stroke,
+      getComputedStyle(element).stroke,
     ].map(parseCssRgb).filter(Boolean);
     return actualColors.some((actual) =>
       actual.every((channel, index) => Math.abs(channel - expected[index]) <= 8),
@@ -426,7 +436,9 @@ function angleDirection(point, origin) {
 
 async function placeMathOverlays(output, svg, overlays) {
   if (overlays.length === 0) return { placed: 0, total: 0 };
-  const mathJax = await loadMathJax();
+  const mathJax = overlays.some((overlay) => overlay.kind === "math")
+    ? await loadMathJax()
+    : null;
   const records = [];
   let missing = 0;
   const viewBox = svg.viewBox.baseVal;
@@ -452,7 +464,9 @@ async function placeMathOverlays(output, svg, overlays) {
 
     const element = document.createElement("span");
     element.className = "mobius-asy-math-label";
-    element.textContent = `\\(${overlay.tex}\\)`;
+    element.textContent = overlay.kind === "math"
+      ? `\\(${overlay.tex}\\)`
+      : overlay.text;
     Object.assign(element.style, {
       position: "absolute",
       display: "inline-block",
@@ -470,7 +484,10 @@ async function placeMathOverlays(output, svg, overlays) {
   }
 
   if (records.length === 0) return { placed: 0, total: overlays.length };
-  await typeset(mathJax, records.map((record) => record.element));
+  const mathElements = records
+    .filter((record) => record.overlay.kind === "math")
+    .map((record) => record.element);
+  if (mathElements.length > 0) await typeset(mathJax, mathElements);
 
   const currentRect = output.getBoundingClientRect();
   for (const { alignment: labelAlignment, element, clientPoint } of records) {
@@ -522,9 +539,9 @@ async function renderFigure(sourceBlock) {
     if (overlayResult.total === 0) {
       setStatus(figure, "ready — Asymptote drawing rendered", "ready");
     } else if (overlayResult.placed === overlayResult.total) {
-      setStatus(figure, `ready — drawing and ${overlayResult.placed} formula label(s) rendered`, "ready");
+      setStatus(figure, `ready — drawing and ${overlayResult.placed} text/math label(s) rendered`, "ready");
     } else {
-      setStatus(figure, `partial — drawing rendered, ${overlayResult.placed}/${overlayResult.total} formula label(s) placed`, "partial");
+      setStatus(figure, `partial — drawing rendered, ${overlayResult.placed}/${overlayResult.total} text/math label(s) placed`, "partial");
     }
   } catch (error) {
     setStatus(figure, `error — ${error.message}`, "error");
