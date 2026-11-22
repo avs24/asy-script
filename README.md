@@ -6,11 +6,13 @@ The original Asymptote stays in a `text/asymptote` script block, so the same cod
 
 ## Try the Möbius example
 
-Paste the contents of [`examples/mobius-wasm-poc.html`](examples/mobius-wasm-poc.html) into a Möbius question's HTML editor. It draws the blue triangle, angle marks, A/B/C as browser text, and tests `\( \sqrt{2} \)` and `60^\circ` overlays. The status line reports how many labels were placed.
+Paste the contents of [`examples/mobius-wasm-poc.html`](examples/mobius-wasm-poc.html) into a Möbius question's HTML editor. It draws the blue triangle, angle marks, A/B/C as browser text, and tests `\( \sqrt{2} \)` and `60^\circ` overlays. The example uses `unitsize(1cm)` and sets overlay text to 12pt (about 16px).
 
 The page needs internet access to download the JavaScript wrapper, Asymptote WebAssembly files, and MathJax. Rendering itself runs in the user's browser. It does not depend on the Asymptote online service or a personal rendering server.
 
 The line above the figure reports the library version and render status. It shows whether the WebAssembly drawing loaded, how many formula labels were placed, or an error to help diagnose a failed preview.
+
+To enlarge a drawing, increase `unitsize(...)` in its Asymptote source. Set `data-asy-font-size` on the figure to control browser-rendered text in points.
 
 ## Local Asymptote / LaTeX use
 
