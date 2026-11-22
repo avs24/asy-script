@@ -6,7 +6,7 @@ The original Asymptote stays in a `text/asymptote` script block, so the same cod
 
 ## Try the Möbius example
 
-Paste the contents of [`examples/mobius-wasm-poc.html`](examples/mobius-wasm-poc.html) into a Möbius question's HTML editor. It draws a blue triangle, overlays A/B/C as browser text, and tests one MathJax `\( \sqrt{2} \)` overlay. The status line reports how many labels were placed.
+Paste the contents of [`examples/mobius-wasm-poc.html`](examples/mobius-wasm-poc.html) into a Möbius question's HTML editor. It draws the blue triangle, angle marks, A/B/C as browser text, and tests `\( \sqrt{2} \)` and `60^\circ` overlays. The status line reports how many labels were placed.
 
 The page needs internet access to download the JavaScript wrapper, Asymptote WebAssembly files, and MathJax. Rendering itself runs in the user's browser. It does not depend on the Asymptote online service or a personal rendering server.
 
@@ -22,7 +22,7 @@ asy -f svg examples/mobius-formula-poc.asy
 
 ## Current scope
 
-- Direct string `label("...", point, alignment)` calls are placed as browser text. Math delimited by `\(...\)` is typeset with MathJax.
+- Direct string `label("...", point, alignment)` calls are placed as browser text. Math delimited by `\(...\)` and formula-bearing `markangle(...)` calls are typeset with MathJax.
 - Other Asymptote commands and plain text labels are left for the WebAssembly renderer.
 - The native `.asy` example shows the original triangle and label source for local LaTeX use.
 
