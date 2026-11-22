@@ -3,7 +3,7 @@
 
 import geometry;
 
-unitsize(1cm);
+unitsize(2cm);
 
 pair A = (0,0), B = (4,3), C = (4,0);
 

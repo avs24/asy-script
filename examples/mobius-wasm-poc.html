@@ -1,11 +1,11 @@
 <!-- Paste this fragment into the Möbius question's HTML/source editor. -->
-<figure data-mobius-asy data-asy-font-size="12">
-  <p data-asy-status role="status">Asymptote Möbius v0.6.0: waiting to start</p>
+<figure data-mobius-asy data-asy-font-size="16">
+  <p data-asy-status role="status">Asymptote Möbius v0.7.0: waiting to start</p>
   <div data-asy-output aria-live="polite">Loading Asymptote…</div>
 
   <script type="text/asymptote">
 import geometry;
-unitsize(1cm);
+unitsize(2cm);
 pair A = (0,0), B = (4,3), C = (4,0);
 draw(A--B--C--cycle, blue+1bp);
 markrightangle(B,C,A,red,PenMargins);

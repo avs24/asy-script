@@ -1,6 +1,6 @@
 const asymptoteModuleUrl = "https://cdn.jsdelivr.net/npm/asymptote-web/dist/asymptote-web.js";
 const mathJaxSource = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js";
-const libraryVersion = "0.6.0";
+const libraryVersion = "0.7.0";
 let enginePromise;
 let mathJaxPromise;
 
@@ -441,10 +441,9 @@ async function placeMathOverlays(output, svg, overlays) {
     : null;
   const records = [];
   let missing = 0;
-  const viewBox = svg.viewBox.baseVal;
-  const pixelsPerUnit = svg.getBoundingClientRect().width / viewBox.width;
-  const fontSizePt = Number(output.closest("[data-mobius-asy]")?.dataset.asyFontSize || 10);
-  const fontSizePx = fontSizePt * pixelsPerUnit;
+  const fontSizePx = Number(
+    output.closest("[data-mobius-asy]")?.dataset.asyFontSize || 16,
+  );
 
   for (const overlay of overlays) {
     const point = markerPoint(svg, overlay.color);
