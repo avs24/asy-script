@@ -1,6 +1,6 @@
 const asymptoteModuleUrl = "https://cdn.jsdelivr.net/npm/asymptote-web/dist/asymptote-web.js";
 const mathJaxSource = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js";
-const libraryVersion = "0.2.1";
+const libraryVersion = "0.2.2";
 let enginePromise;
 let mathJaxPromise;
 
@@ -323,7 +323,7 @@ function transformedBox(element, svg) {
 
 function markerPoint(svg, color) {
   const expected = parseCssRgb(color);
-  const elements = Array.from(svg.querySelectorAll("path, circle, ellipse, polygon, rect"));
+  const elements = Array.from(svg.querySelectorAll("*"));
   const matches = elements.filter((element) => {
     if (element.closest("defs")) return false;
     const actualColors = [
@@ -338,12 +338,18 @@ function markerPoint(svg, color) {
 
   if (matches.length === 0) return null;
 
-  const boxes = matches.map((element) => transformedBox(element, svg)).filter(Boolean);
+  // Prefer the deepest matching SVG nodes. WASM output may put marker colors
+  // on a group or <use>, not directly on a circle/path as native Asymptote does.
+  const leaves = matches.filter((element) =>
+    !Array.from(element.querySelectorAll("*")).some((child) => matches.includes(child)),
+  );
+  const boxes = leaves.map((element) => transformedBox(element, svg)).filter(Boolean);
+  if (boxes.length === 0) return null;
   const left = Math.min(...boxes.map((box) => box.x));
   const top = Math.min(...boxes.map((box) => box.y));
   const right = Math.max(...boxes.map((box) => box.x + box.width));
   const bottom = Math.max(...boxes.map((box) => box.y + box.height));
-  matches.forEach((element) => element.remove());
+  leaves.forEach((element) => element.remove());
   return { x: (left + right) / 2, y: (top + bottom) / 2 };
 }
 
