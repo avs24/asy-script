@@ -1,6 +1,6 @@
 <!-- Paste this fragment into the Möbius question's HTML/source editor. -->
 <figure data-mobius-asy data-asy-font-size="16" data-asy-label-gap="6">
-  <p data-asy-status role="status">Asymptote Möbius v0.8.0: waiting to start</p>
+  <p data-asy-status role="status">Asymptote Möbius v0.9.0: waiting to start</p>
   <div data-asy-output aria-live="polite">Loading Asymptote…</div>
 
   <script type="text/asymptote">
@@ -11,9 +11,9 @@ draw(A--B--C--cycle, blue+1bp);
 markrightangle(B,C,A,red,PenMargins);
 markangle("/(60^\circ \\)",C,A,B,radius=20,n=1,red,PenMargins);
 label("\( \sqrt{2} \)", (A+B)/2, NW);
-label("A", A, SW);
-label("B", B, NE);
-label("C", C, SE);
+dot("A", A, SW, UnFill);
+dot("B", B, NE, UnFill);
+dot("C", C, SE, UnFill);
 label("\(a\)", (A+C)/2, S);
 label("\(b\)", (B+C)/2, E);
   </script>

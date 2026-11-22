@@ -1,6 +1,6 @@
 const asymptoteModuleUrl = "https://cdn.jsdelivr.net/npm/asymptote-web/dist/asymptote-web.js";
 const mathJaxSource = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js";
-const libraryVersion = "0.8.0";
+const libraryVersion = "0.9.0";
 let enginePromise;
 let mathJaxPromise;
 
@@ -231,6 +231,36 @@ export function prepareAsySource(source) {
       start: call.start,
       end: statementEnd(source, call.closeIndex),
       text: `{ dot(${position}, ${color.asy}+linewidth(2bp)); }`,
+    });
+    overlays.push({
+      kind: tex ? "math" : "text",
+      tex,
+      text: label,
+      position,
+      alignment: getAlignment(call, source),
+      color: color.css,
+    });
+  }
+
+  for (const call of findFunctionCalls(source, "dot")) {
+    if (call.args.length < 3) continue;
+    const label = decodeAsyStringLiteral(source, call.args[0]);
+    if (label === null) continue;
+
+    const position = source.slice(call.args[1].start, call.args[1].end).trim();
+    if (!position) continue;
+    const color = markerColor(nextMarkerIndex++);
+    const trailing = call.args.slice(3).map((range) =>
+      source.slice(range.start, range.end).trim(),
+    );
+    const filltype = trailing.find((arg) => /^(UnFill|Fill|Draw|FillDraw)\b/.test(arg));
+    const filltypeArg = filltype ? `, filltype=${filltype}` : "";
+    const tex = mathSourceFromLabel(label);
+
+    edits.push({
+      start: call.start,
+      end: statementEnd(source, call.closeIndex),
+      text: `{ dot(${position}${filltypeArg}); dot(${position},${color.asy}+linewidth(2bp)); }`,
     });
     overlays.push({
       kind: tex ? "math" : "text",
