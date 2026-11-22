@@ -1,6 +1,6 @@
 const asymptoteModuleUrl = "https://cdn.jsdelivr.net/npm/asymptote-web/dist/asymptote-web.js";
 const mathJaxSource = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js";
-const libraryVersion = "0.2.2";
+const libraryVersion = "0.3.0";
 let enginePromise;
 let mathJaxPromise;
 
@@ -519,7 +519,9 @@ async function renderFigure(sourceBlock) {
     svg.style.height = "auto";
     setStatus(figure, "drawing rendered; typesetting formulas…", "working");
     const overlayResult = await placeMathOverlays(output, svg, prepared.overlays);
-    if (overlayResult.placed === overlayResult.total) {
+    if (overlayResult.total === 0) {
+      setStatus(figure, "ready — Asymptote drawing rendered", "ready");
+    } else if (overlayResult.placed === overlayResult.total) {
       setStatus(figure, `ready — drawing and ${overlayResult.placed} formula label(s) rendered`, "ready");
     } else {
       setStatus(figure, `partial — drawing rendered, ${overlayResult.placed}/${overlayResult.total} formula label(s) placed`, "partial");

@@ -6,7 +6,7 @@ The original Asymptote stays in a `text/asymptote` script block, so the same cod
 
 ## Try the Möbius example
 
-After the first version is published, paste the contents of [`examples/mobius-wasm-poc.html`](examples/mobius-wasm-poc.html) into a Möbius question's HTML editor. The example draws a triangle, its angle marks, point names, and two typeset formulas. It tests both `label("\( ... \)", point, alignment)` and a formula inside `markangle("...", ...)`.
+Paste the contents of [`examples/mobius-wasm-poc.html`](examples/mobius-wasm-poc.html) into a Möbius question's HTML editor. This first check only draws a blue triangle. The status line above it reports whether the WebAssembly renderer succeeded.
 
 The page needs internet access to download the JavaScript wrapper, Asymptote WebAssembly files, and MathJax. Rendering itself runs in the user's browser. It does not depend on the Asymptote online service or a personal rendering server.
 
@@ -22,9 +22,8 @@ asy -f svg examples/mobius-formula-poc.asy
 
 ## Current scope
 
-- Direct `label("...", point, alignment)` calls with math delimited by `\(...\)` or `\[...\]` are extracted for browser typesetting.
-- Formula labels passed directly to the pair-based `markangle("...", C, A, B, ...)` are also overlaid; the example uses Möbius-compatible `/(` syntax.
+- Formula overlays are a later experiment. The Möbius smoke test deliberately starts with geometry only.
 - Other Asymptote commands and plain text labels are left for the WebAssembly renderer.
-- Formula color and some advanced Asymptote label options are not yet carried over. The initial example checks the required placement and font rendering first.
+- The native `.asy` example shows the original triangle and label source for local LaTeX use.
 
 This is an early prototype, not yet a versioned release.
