@@ -10,6 +10,8 @@ After the first version is published, paste the contents of [`examples/mobius-wa
 
 The page needs internet access to download the JavaScript wrapper, Asymptote WebAssembly files, and MathJax. Rendering itself runs in the user's browser. It does not depend on the Asymptote online service or a personal rendering server.
 
+The line above the figure reports the library version and render status. It shows whether the WebAssembly drawing loaded, how many formula labels were placed, or an error to help diagnose a failed preview.
+
 ## Local Asymptote / LaTeX use
 
 The example source is also saved as [`examples/mobius-formula-poc.asy`](examples/mobius-formula-poc.asy). Compile it with Asymptote as usual:

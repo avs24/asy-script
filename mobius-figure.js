@@ -1,5 +1,6 @@
 const asymptoteModuleUrl = "https://cdn.jsdelivr.net/npm/asymptote-web/dist/asymptote-web.js";
 const mathJaxSource = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js";
+const libraryVersion = "0.2.1";
 let enginePromise;
 let mathJaxPromise;
 
@@ -158,6 +159,13 @@ function mathSourceFromLabel(label) {
   return null;
 }
 
+function setStatus(figure, message, state) {
+  const status = figure.querySelector("[data-asy-status]");
+  if (!status) return;
+  status.textContent = `Asymptote Möbius v${libraryVersion}: ${message}`;
+  status.dataset.state = state;
+}
+
 function markerColor(index) {
   const r = 239;
   const g = (29 + index * 73) % 251;
@@ -270,11 +278,21 @@ export function prepareAsySource(source) {
 }
 
 function parseCssRgb(value) {
-  const match = value?.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
-  if (match) return match.slice(1, 4).map(Number);
-  const hex = value?.trim().match(/^#([\da-f]{3}|[\da-f]{6})$/i)?.[1];
+  const rgb = value?.match(/rgba?\(([^)]+)\)/i)?.[1];
+  if (rgb) {
+    const channels = rgb.split(/[\s,\/]+/).filter(Boolean).slice(0, 3);
+    if (channels.length === 3) {
+      return channels.map((channel) => {
+        const number = Number.parseFloat(channel);
+        return channel.endsWith("%") ? Math.round(number * 2.55) : Math.round(number);
+      });
+    }
+  }
+  const hex = value?.trim().match(/^#([\da-f]{3}|[\da-f]{4}|[\da-f]{6}|[\da-f]{8})$/i)?.[1];
   if (!hex) return null;
-  const expanded = hex.length === 3 ? [...hex].map((digit) => digit + digit).join("") : hex;
+  const expanded = hex.length <= 4
+    ? [...hex.slice(0, 3)].map((digit) => digit + digit).join("")
+    : hex.slice(0, 6);
   return [0, 2, 4].map((index) => Number.parseInt(expanded.slice(index, index + 2), 16));
 }
 
@@ -308,10 +326,14 @@ function markerPoint(svg, color) {
   const elements = Array.from(svg.querySelectorAll("path, circle, ellipse, polygon, rect"));
   const matches = elements.filter((element) => {
     if (element.closest("defs")) return false;
-    const actual = parseCssRgb(
-      element.getAttribute("fill") || element.style.fill || getComputedStyle(element).fill,
+    const actualColors = [
+      element.getAttribute("fill"),
+      element.style.fill,
+      getComputedStyle(element).fill,
+    ].map(parseCssRgb).filter(Boolean);
+    return actualColors.some((actual) =>
+      actual.every((channel, index) => Math.abs(channel - expected[index]) <= 8),
     );
-    return actual && actual.every((channel, index) => channel === expected[index]);
   });
 
   if (matches.length === 0) return null;
@@ -397,9 +419,10 @@ function angleDirection(point, origin) {
 }
 
 async function placeMathOverlays(output, svg, overlays) {
-  if (overlays.length === 0) return;
+  if (overlays.length === 0) return { placed: 0, total: 0 };
   const mathJax = await loadMathJax();
   const records = [];
+  let missing = 0;
   const viewBox = svg.viewBox.baseVal;
   const pixelsPerUnit = svg.getBoundingClientRect().width / viewBox.width;
   const fontSizePt = Number(output.closest("[data-mobius-asy]")?.dataset.asyFontSize || 10);
@@ -407,7 +430,10 @@ async function placeMathOverlays(output, svg, overlays) {
 
   for (const overlay of overlays) {
     const point = markerPoint(svg, overlay.color);
-    if (!point) continue;
+    if (!point) {
+      missing += 1;
+      continue;
+    }
     const origin = overlay.originColor ? markerPoint(svg, overlay.originColor) : null;
     const alignment = overlay.alignment === "Angle" && origin
       ? angleDirection(point, origin)
@@ -437,7 +463,7 @@ async function placeMathOverlays(output, svg, overlays) {
     records.push({ overlay, alignment, element, clientPoint });
   }
 
-  if (records.length === 0) return;
+  if (records.length === 0) return { placed: 0, total: overlays.length };
   await typeset(mathJax, records.map((record) => record.element));
 
   const currentRect = output.getBoundingClientRect();
@@ -460,6 +486,7 @@ async function placeMathOverlays(output, svg, overlays) {
     element.style.top = `${top}px`;
     element.style.visibility = "visible";
   }
+  return { placed: records.length, total: overlays.length, missing };
 }
 
 async function renderFigure(sourceBlock) {
@@ -467,6 +494,7 @@ async function renderFigure(sourceBlock) {
   const output = figure?.querySelector("[data-asy-output]");
   if (!output) return;
 
+  setStatus(figure, "loading browser renderer…", "loading");
   output.textContent = "Rendering Asymptote…";
   output.style.position = "relative";
 
@@ -483,8 +511,15 @@ async function renderFigure(sourceBlock) {
     svg.style.display = "block";
     svg.style.maxWidth = "100%";
     svg.style.height = "auto";
-    await placeMathOverlays(output, svg, prepared.overlays);
+    setStatus(figure, "drawing rendered; typesetting formulas…", "working");
+    const overlayResult = await placeMathOverlays(output, svg, prepared.overlays);
+    if (overlayResult.placed === overlayResult.total) {
+      setStatus(figure, `ready — drawing and ${overlayResult.placed} formula label(s) rendered`, "ready");
+    } else {
+      setStatus(figure, `partial — drawing rendered, ${overlayResult.placed}/${overlayResult.total} formula label(s) placed`, "partial");
+    }
   } catch (error) {
+    setStatus(figure, `error — ${error.message}`, "error");
     output.textContent = `Could not render this figure: ${error.message}`;
     output.dataset.state = "error";
   }
