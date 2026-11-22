@@ -6,7 +6,7 @@ The original Asymptote stays in a `text/asymptote` script block, so the same cod
 
 ## Try the Möbius example
 
-Paste the contents of [`examples/mobius-wasm-poc.html`](examples/mobius-wasm-poc.html) into a Möbius question's HTML editor. It draws the blue triangle and angle marks, uses `dot("A", A, SW, UnFill)` for point names, and places side labels `a` and `b` with `label(...)`. The `60^\circ` label follows the angle bisector, and side labels have a small gap from the sides.
+Paste the contents of [`examples/mobius-wasm-poc.html`](examples/mobius-wasm-poc.html) into a Möbius question's HTML editor. It draws the blue triangle and angle marks, uses `dot("A", A, N, UnFill)` for point names, and places side labels `a` and `b` with `label(...)`. The `60^\circ` label follows the angle bisector, and side labels have a small gap from the sides.
 
 The page needs internet access to download the JavaScript wrapper, Asymptote WebAssembly files, and MathJax. Rendering itself runs in the user's browser. It does not depend on the Asymptote online service or a personal rendering server.
 

@@ -13,7 +13,7 @@ markangle("$60^\circ$",C,A,B,radius=20,n=1,red,PenMargins);
 dot(A^^B^^C, UnFill);
 
 label("\( \sqrt{2} \)", (A+B)/2, NW);
-dot("A", A, SW, UnFill);
+dot("A", A, N, UnFill);
 dot("B", B, NE, UnFill);
 dot("C", C, SE, UnFill);
 label("$a$", (A+C)/2, S);
