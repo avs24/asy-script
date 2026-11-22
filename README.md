@@ -6,13 +6,13 @@ The original Asymptote stays in a `text/asymptote` script block, so the same cod
 
 ## Try the Möbius example
 
-Paste the contents of [`examples/mobius-wasm-poc.html`](examples/mobius-wasm-poc.html) into a Möbius question's HTML editor. It draws the blue triangle, angle marks, A/B/C as browser text, and tests `\( \sqrt{2} \)` and `60^\circ` overlays. The example uses `unitsize(2cm)` and 16px overlay text.
+Paste the contents of [`examples/mobius-wasm-poc.html`](examples/mobius-wasm-poc.html) into a Möbius question's HTML editor. It draws the blue triangle, angle marks, A/B/C, and the side labels `a` and `b` as browser text/math. The `60^\circ` label follows the angle bisector, and side labels have a small gap from the sides. The example uses `unitsize(2cm)` and 16px text.
 
 The page needs internet access to download the JavaScript wrapper, Asymptote WebAssembly files, and MathJax. Rendering itself runs in the user's browser. It does not depend on the Asymptote online service or a personal rendering server.
 
 The line above the figure reports the library version and render status. It shows whether the WebAssembly drawing loaded, how many formula labels were placed, or an error to help diagnose a failed preview.
 
-`unitsize(...)` controls the drawing's geometry scale. Set `data-asy-font-size` on the figure to control browser-rendered text in CSS pixels; the text size is independent of `unitsize`.
+`unitsize(...)` controls the drawing's geometry scale. Set `data-asy-font-size` on the figure to control browser-rendered text in CSS pixels. Set `data-asy-label-gap` to tune label spacing in pixels.
 
 ## Local Asymptote / LaTeX use
 

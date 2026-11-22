@@ -16,3 +16,5 @@ label("\( \sqrt{2} \)", (A+B)/2, NW);
 label("A", A, SW);
 label("B", B, NE);
 label("C", C, SE);
+label("$a$", (A+C)/2, S);
+label("$b$", (B+C)/2, E);

@@ -1,6 +1,6 @@
 const asymptoteModuleUrl = "https://cdn.jsdelivr.net/npm/asymptote-web/dist/asymptote-web.js";
 const mathJaxSource = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js";
-const libraryVersion = "0.7.0";
+const libraryVersion = "0.8.0";
 let enginePromise;
 let mathJaxPromise;
 
@@ -426,14 +426,6 @@ function direction(alignment) {
   return directions.has(value) ? value : "NoAlign";
 }
 
-function angleDirection(point, origin) {
-  const dx = point.x - origin.x;
-  const dy = point.y - origin.y;
-  const horizontal = Math.abs(dx) < 0.001 ? "" : dx < 0 ? "W" : "E";
-  const vertical = Math.abs(dy) < 0.001 ? "" : dy < 0 ? "N" : "S";
-  return vertical + horizontal || "NoAlign";
-}
-
 async function placeMathOverlays(output, svg, overlays) {
   if (overlays.length === 0) return { placed: 0, total: 0 };
   const mathJax = overlays.some((overlay) => overlay.kind === "math")
@@ -444,6 +436,17 @@ async function placeMathOverlays(output, svg, overlays) {
   const fontSizePx = Number(
     output.closest("[data-mobius-asy]")?.dataset.asyFontSize || 16,
   );
+  const labelGap = Number(
+    output.closest("[data-mobius-asy]")?.dataset.asyLabelGap || fontSizePx * 0.25,
+  );
+
+  function toClientPoint(point) {
+    if (!point) return null;
+    const screenPoint = svg.createSVGPoint();
+    screenPoint.x = point.x;
+    screenPoint.y = point.y;
+    return screenPoint.matrixTransform(svg.getScreenCTM());
+  }
 
   for (const overlay of overlays) {
     const point = markerPoint(svg, overlay.color);
@@ -452,14 +455,8 @@ async function placeMathOverlays(output, svg, overlays) {
       continue;
     }
     const origin = overlay.originColor ? markerPoint(svg, overlay.originColor) : null;
-    const alignment = overlay.alignment === "Angle" && origin
-      ? angleDirection(point, origin)
-      : overlay.alignment;
-
-    const screenPoint = svg.createSVGPoint();
-    screenPoint.x = point.x;
-    screenPoint.y = point.y;
-    const clientPoint = screenPoint.matrixTransform(svg.getScreenCTM());
+    const clientPoint = toClientPoint(point);
+    const originClientPoint = toClientPoint(origin);
 
     const element = document.createElement("span");
     element.className = "mobius-asy-math-label";
@@ -479,7 +476,7 @@ async function placeMathOverlays(output, svg, overlays) {
       zIndex: "2",
     });
     output.append(element);
-    records.push({ overlay, alignment, element, clientPoint });
+    records.push({ overlay, element, clientPoint, originClientPoint });
   }
 
   if (records.length === 0) return { placed: 0, total: overlays.length };
@@ -489,20 +486,34 @@ async function placeMathOverlays(output, svg, overlays) {
   if (mathElements.length > 0) await typeset(mathJax, mathElements);
 
   const currentRect = output.getBoundingClientRect();
-  for (const { alignment: labelAlignment, element, clientPoint } of records) {
+  for (const { overlay, element, clientPoint, originClientPoint } of records) {
     const rect = element.getBoundingClientRect();
     const pointX = clientPoint.x - currentRect.left;
     const pointY = clientPoint.y - currentRect.top;
-    const align = direction(labelAlignment);
     let left = pointX;
     let top = pointY;
 
-    if (align.endsWith("W") || align === "W") left -= rect.width;
-    else if (!align.endsWith("E") && align !== "E" && align !== "NoAlign") left -= rect.width / 2;
-    else if (align === "NoAlign") left -= rect.width / 2;
+    if (overlay.alignment === "Angle" && originClientPoint) {
+      const dx = clientPoint.x - originClientPoint.x;
+      const dy = clientPoint.y - originClientPoint.y;
+      const length = Math.hypot(dx, dy) || 1;
+      const nx = dx / length;
+      const ny = dy / length;
+      const support = Math.abs(nx) * rect.width / 2 + Math.abs(ny) * rect.height / 2;
+      const centerX = pointX + nx * (support + labelGap);
+      const centerY = pointY + ny * (support + labelGap);
+      left = centerX - rect.width / 2;
+      top = centerY - rect.height / 2;
+    } else {
+      const align = direction(overlay.alignment);
+      if (align.endsWith("W") || align === "W") left -= rect.width + labelGap;
+      else if (!align.endsWith("E") && align !== "E") left -= rect.width / 2;
+      else left += labelGap;
 
-    if (align.startsWith("N") || align === "N") top -= rect.height;
-    else if (!align.startsWith("S") && align !== "S") top -= rect.height / 2;
+      if (align.startsWith("N") || align === "N") top -= rect.height + labelGap;
+      else if (!align.startsWith("S") && align !== "S") top -= rect.height / 2;
+      else top += labelGap;
+    }
 
     element.style.left = `${left}px`;
     element.style.top = `${top}px`;
