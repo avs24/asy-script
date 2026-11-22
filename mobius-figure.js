@@ -147,11 +147,13 @@ function mathSourceFromLabel(label) {
   if (value.startsWith("\\(") && value.endsWith("\\)")) {
     return value.slice(2, -2).trim();
   }
-  if (value.startsWith("\\[") && value.endsWith("\\]")) {
+  // In Möbius, use /(...\) in source strings where dollar delimiters conflict
+  // with the question editor's own formula handling.
+  if (value.startsWith("/(") && value.endsWith("\\)")) {
     return value.slice(2, -2).trim();
   }
-  if (value.startsWith("$") && value.endsWith("$") && value.length >= 2) {
-    return value.slice(1, -1).trim();
+  if (value.startsWith("\\[") && value.endsWith("\\]")) {
+    return value.slice(2, -2).trim();
   }
   return null;
 }
@@ -190,15 +192,14 @@ pair mobiusAsyLabelPointForMarkAngle(
 {
   if(space == 0) space=markanglespace(p);
   if(radius == 0) radius=markangleradius(p);
-  p=squarecap+p;
   pair OB=unit(B-O), OA=unit(A-O);
   real xoa=degrees(OA,false);
   real gle=degrees(acos(dot(OA,OB)));
   if((conj(OA)*OB).y < 0) gle *= -1;
-  bool ccw=radius > 0;
-  if(!ccw) radius=-radius;
-  path lpth=markmargin(arc((0,0),radius+(n-1)*space,xoa,xoa+gle,ccw),p).g;
-  return O+point(lpth,0.5);
+  real labelRadius=abs(radius)+(n-1)*space;
+  transform t=inverse(currentpicture.calculateTransform());
+  pair offset=t*(labelRadius*dir(xoa+gle/2))-t*(0,0);
+  return O+offset;
 }
 `;
 
@@ -270,7 +271,11 @@ export function prepareAsySource(source) {
 
 function parseCssRgb(value) {
   const match = value?.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
-  return match ? match.slice(1, 4).map(Number) : null;
+  if (match) return match.slice(1, 4).map(Number);
+  const hex = value?.trim().match(/^#([\da-f]{3}|[\da-f]{6})$/i)?.[1];
+  if (!hex) return null;
+  const expanded = hex.length === 3 ? [...hex].map((digit) => digit + digit).join("") : hex;
+  return [0, 2, 4].map((index) => Number.parseInt(expanded.slice(index, index + 2), 16));
 }
 
 function transformedBox(element, svg) {
@@ -303,7 +308,9 @@ function markerPoint(svg, color) {
   const elements = Array.from(svg.querySelectorAll("path, circle, ellipse, polygon, rect"));
   const matches = elements.filter((element) => {
     if (element.closest("defs")) return false;
-    const actual = parseCssRgb(getComputedStyle(element).fill);
+    const actual = parseCssRgb(
+      element.getAttribute("fill") || element.style.fill || getComputedStyle(element).fill,
+    );
     return actual && actual.every((channel, index) => channel === expected[index]);
   });
 
@@ -316,6 +323,17 @@ function markerPoint(svg, color) {
   const bottom = Math.max(...boxes.map((box) => box.y + box.height));
   matches.forEach((element) => element.remove());
   return { x: (left + right) / 2, y: (top + bottom) / 2 };
+}
+
+function preserveSvgColors(svg) {
+  // Möbius page styles can override SVG presentation attributes. Copy Asy's
+  // explicit colors to inline styles so lines and markers retain their colors.
+  for (const element of svg.querySelectorAll("[fill], [stroke]")) {
+    const fill = element.getAttribute("fill");
+    const stroke = element.getAttribute("stroke");
+    if (fill) element.style.fill = fill;
+    if (stroke) element.style.stroke = stroke;
+  }
 }
 
 function loadMathJax() {
@@ -461,6 +479,7 @@ async function renderFigure(sourceBlock) {
 
     const svg = output.querySelector("svg");
     if (!svg) throw new Error("The WebAssembly renderer returned no SVG.");
+    preserveSvgColors(svg);
     svg.style.display = "block";
     svg.style.maxWidth = "100%";
     svg.style.height = "auto";

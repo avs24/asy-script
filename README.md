@@ -20,8 +20,8 @@ asy -f svg examples/mobius-formula-poc.asy
 
 ## Current scope
 
-- Direct `label("...", point, alignment)` calls with math delimited by `\(...\)`, `\[...\]`, or `$...$` are extracted for browser typesetting.
-- Formula labels passed directly to the pair-based `markangle("...", C, A, B, ...)` are also overlaid.
+- Direct `label("...", point, alignment)` calls with math delimited by `\(...\)` or `\[...\]` are extracted for browser typesetting.
+- Formula labels passed directly to the pair-based `markangle("...", C, A, B, ...)` are also overlaid; the example uses Möbius-compatible `/(` syntax.
 - Other Asymptote commands and plain text labels are left for the WebAssembly renderer.
 - Formula color and some advanced Asymptote label options are not yet carried over. The initial example checks the required placement and font rendering first.
 
