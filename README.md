@@ -6,7 +6,7 @@ The original Asymptote stays in a `text/asymptote` script block, so the same cod
 
 ## Try the Möbius example
 
-Paste the contents of [`examples/mobius-wasm-poc.html`](examples/mobius-wasm-poc.html) into a Möbius question's HTML editor. This first check only draws a blue triangle. The status line above it reports whether the WebAssembly renderer succeeded.
+Paste the contents of [`examples/mobius-wasm-poc.html`](examples/mobius-wasm-poc.html) into a Möbius question's HTML editor. It draws a blue triangle with A/B/C point names and tests one overlaid `\( \sqrt{2} \)` formula. The status line above it reports whether the drawing rendered and the formula was placed.
 
 The page needs internet access to download the JavaScript wrapper, Asymptote WebAssembly files, and MathJax. Rendering itself runs in the user's browser. It does not depend on the Asymptote online service or a personal rendering server.
 
@@ -22,7 +22,7 @@ asy -f svg examples/mobius-formula-poc.asy
 
 ## Current scope
 
-- Formula overlays are a later experiment. The Möbius smoke test deliberately starts with geometry only.
+- Direct `label("...", point, alignment)` calls with math delimited by `\(...\)` are overlaid with MathJax in the browser. This is the first formula placement test.
 - Other Asymptote commands and plain text labels are left for the WebAssembly renderer.
 - The native `.asy` example shows the original triangle and label source for local LaTeX use.
 

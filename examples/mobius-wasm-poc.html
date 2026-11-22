@@ -1,6 +1,6 @@
 <!-- Paste this fragment into the Möbius question's HTML/source editor. -->
 <figure data-mobius-asy>
-  <p data-asy-status role="status">Asymptote Möbius v0.3.0: waiting to start</p>
+  <p data-asy-status role="status">Asymptote Möbius v0.4.0: waiting to start</p>
   <div data-asy-output aria-live="polite">Loading Asymptote…</div>
 
   <script type="text/asymptote">
@@ -8,6 +8,10 @@ import geometry;
 unitsize(0.5cm);
 pair A = (0,0), B = (4,3), C = (4,0);
 draw(A--B--C--cycle, blue+1bp);
+label("\( \sqrt{2} \)", (A+B)/2, NW);
+label("A", A, SW);
+label("B", B, NE);
+label("C", C, SE);
   </script>
 </figure>
 

@@ -1,6 +1,6 @@
 const asymptoteModuleUrl = "https://cdn.jsdelivr.net/npm/asymptote-web/dist/asymptote-web.js";
 const mathJaxSource = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js";
-const libraryVersion = "0.3.0";
+const libraryVersion = "0.4.0";
 let enginePromise;
 let mathJaxPromise;
 

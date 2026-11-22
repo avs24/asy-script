@@ -6,6 +6,6 @@
 asy -f svg mobius-formula-poc.asy
 ```
 
-`mobius-wasm-poc.html` is the first Möbius test. It draws only a triangle and shows a status line with the library version and render result. It loads `mobius-figure.js`, which runs the Asymptote compiler in browser WebAssembly.
+`mobius-wasm-poc.html` is the Möbius test. It draws a triangle with A/B/C point names and tests one overlaid `\( \sqrt{2} \)` formula. Its status line reports the library version and render result. It loads `mobius-figure.js`, which runs Asymptote in browser WebAssembly.
 
 The browser needs internet access for the GitHub CDN, Asymptote WebAssembly package, and MathJax. Rendering happens in the browser; no personal render server or University of Alberta service is involved.
